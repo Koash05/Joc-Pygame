@@ -8,7 +8,7 @@ from pygame.locals import *
 # Constantes
 WIDTH = 1280
 HEIGHT = 720
-BLACK = [0, 0, 0]
+BLACK = [255, 255, 255]
 RECARGA = 10
 VIDA = 5
 
@@ -39,6 +39,7 @@ class Nave(pygame.sprite.Sprite):
         self.shots = []
         self.recarga=RECARGA
         self.vida = VIDA
+        self.score = 0
 
 
     def mover(self, time, keys):
@@ -109,7 +110,7 @@ class Ovni(pygame.sprite.Sprite):
 
 # Funciones
 # ---------------------------------------------------------------------
-def cargarImagen(filename, transparent=False):
+def cargarImagen(filename, transparent=True):
     try:
         image = pygame.image.load(filename)
     except pygame.error as message:
@@ -134,6 +135,7 @@ def calculaDisparos(naveJugador, ovnis):
             if(pygame.sprite.collide_mask(shot, ovni)):
                 naveJugador.shots.remove(shot)
                 ovnis.remove(ovni)
+                naveJugador.score=naveJugador.score+1
 
 def seguirJugador(naveJugador, ovnis, time):
     for ovni in ovnis:
@@ -154,6 +156,14 @@ def seguirJugador(naveJugador, ovnis, time):
 def colisionNaveOvni(naveJugador, ovni, ovnis):
     if pygame.sprite.collide_mask(naveJugador, ovni):
         naveJugador.vida = naveJugador.vida - 1
+
+        if naveJugador.vida < 0:
+            naveJugador.vida=0
+
+        naveJugador.score = naveJugador.score-10
+
+        if naveJugador.score < 0:
+            naveJugador.score=0
 
         ovnis.remove(ovni)
 
@@ -182,7 +192,7 @@ def main():
     naveJugador = Nave()
 
     ovnis = []
-
+    myfont = pygame.font.SysFont('Comic Sans MS', 30)
     tiempoParaNuevoOvni = 50
 
     ovni = Ovni(500, 500)
@@ -213,6 +223,12 @@ def main():
         seguirJugador(naveJugador, ovnis, time)
         calculaDisparos(naveJugador, ovnis)
 
+
+        textScore = myfont.render("Score " + str(naveJugador.score), False, (0, 0, 0))
+        textLifes = myfont.render("Vidas " + str(naveJugador.vida), False, (0, 0, 0))
+
+        screen.blit(textScore, (50, 50))
+        screen.blit(textLifes, (50, 90))
 
         if(naveJugador.vida == 0):
             print("has perdido")
