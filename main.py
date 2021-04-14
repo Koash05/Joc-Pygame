@@ -27,17 +27,38 @@ class Shot(pygame.sprite.Sprite):
         self.speed = 0.9
         self.life= 100
 
+class Corazon(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        # self.image = cargarImagen("imagenes/corazon.png")
+        self.image = pygame.image.load("imagenes/corazon.png")
+        self.rect = self.image.get_rect()
+        self.rect.centery=y
+        self.rect.centerx=x
+        self.lifeTime=300
+
+class Moneda(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        # self.image = cargarImagen("imagenes/moneda.png")
+        self.image = pygame.image.load("imagenes/moneda.png")
+        self.rect = self.image.get_rect()
+        self.rect.centery = y
+        self.rect.centerx = x
+        self.lifeTime = 300
+
+
 class Nave(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = cargarImagen("imagenes/spaceship1.png")
         self.rect = self.image.get_rect()
         self.speed = 0.4
-        self.rect.centery=HEIGHT/2
-        self.rect.centerx=WIDTH/2
+        self.rect.centery = HEIGHT/2
+        self.rect.centerx = WIDTH/2
         self.mirando = 1
         self.shots = []
-        self.recarga=RECARGA
+        self.recarga = RECARGA
         self.vida = VIDA
         self.score = 0
 
@@ -102,8 +123,8 @@ class Ovni(pygame.sprite.Sprite):
         self.image = cargarImagen("imagenes/ovni.png")
         self.rect = self.image.get_rect()
         self.speed = 0.2
-        self.rect.centery=y
-        self.rect.centerx=x
+        self.rect.centery = y
+        self.rect.centerx = x
 
 
 # ---------------------------------------------------------------------
@@ -129,13 +150,25 @@ def dibujarOvnis(ovnis, screen):
     for ovni in ovnis:
         screen.blit(ovni.image, ovni.rect)
 
-def calculaDisparos(naveJugador, ovnis):
+def calculaDisparos(naveJugador, ovnis, monedas, vidas):
     for ovni in ovnis:
         for shot in naveJugador.shots:
             if(pygame.sprite.collide_mask(shot, ovni)):
                 naveJugador.shots.remove(shot)
+                posicionOvniMuertoX=ovni.rect.centerx
+                posicionOvniMuertoY = ovni.rect.centery
                 ovnis.remove(ovni)
                 naveJugador.score=naveJugador.score+1
+                item = random.randint(0, 4)
+                print(item)
+
+                if item==2:
+                    monedas.append(Moneda(posicionOvniMuertoX, posicionOvniMuertoY))
+
+                if item==3:
+                    vidas.append(Corazon(posicionOvniMuertoX, posicionOvniMuertoY))
+
+
 
 def seguirJugador(naveJugador, ovnis, time):
     for ovni in ovnis:
@@ -183,6 +216,58 @@ def nuevoOvni(ovnis, tiempoParaNuevoOvni):
     if posicion == 5:
         ovnis.append(Ovni(HEIGHT,WIDTH))
 
+def calcularTiempoDeVidaItems(monedas, vidas):
+
+    for moneda in monedas:
+        moneda.lifeTime=moneda.lifeTime-1
+
+        if moneda.lifeTime <=0:
+            monedas.remove(moneda)
+
+    for vida in vidas:
+        vida.lifeTime = vida.lifeTime-1
+
+        if vida.lifeTime <=0:
+            vidas.remove(vida)
+
+def dibujarItems(monedas, vidas, screen, naveJugador):
+    for moneda in monedas:
+        screen.blit(moneda.image, moneda.rect)
+
+    for vida in vidas:
+        screen.blit(vida.image, vida.rect)
+
+    calcularColisionItems(monedas, vidas, naveJugador)
+
+def calcularColisionItems(monedas, vidas, naveJugador):
+    for moneda in monedas:
+        if pygame.sprite.collide_mask(naveJugador, moneda):
+            naveJugador.score += 100
+            monedas.remove(moneda)
+
+    for vida in vidas:
+        if pygame.sprite.collide_mask(naveJugador, vida):
+            if naveJugador.vida < 5:
+                naveJugador.vida += 1
+            vidas.remove(vida)
+
+
+def dibujarVidaRestante(screen, naveJugador):
+    imagenVida = pygame.image.load("imagenes/corazon.png")
+    imagenCorazonUsado = pygame.image.load("imagenes/corazonOscuro.png")
+    vidasJugador = naveJugador.vida
+    vidasTotales = VIDA
+    vidasUsadas = vidasTotales-vidasJugador
+    distanciaDeDibujado = 40
+
+    for x in range(0, vidasJugador):
+        screen.blit(imagenVida, (WIDTH-distanciaDeDibujado, 20))
+        distanciaDeDibujado += 40
+
+    for x in range(0, vidasUsadas):
+        screen.blit(imagenCorazonUsado, (WIDTH-distanciaDeDibujado, 20))
+        distanciaDeDibujado += 40
+
 
 # ---------------------------------------------------------------------
 def main():
@@ -192,12 +277,11 @@ def main():
     naveJugador = Nave()
 
     ovnis = []
+    vidas = []
+    monedas = []
+
     myfont = pygame.font.SysFont('Comic Sans MS', 30)
     tiempoParaNuevoOvni = 50
-
-    ovni = Ovni(500, 500)
-    ovnis.append(ovni)
-
 
     clock = pygame.time.Clock()
 
@@ -220,15 +304,20 @@ def main():
 
         dibujarOvnis(ovnis, screen)
         dibujarBalas(naveJugador, screen)
+        dibujarItems(monedas, vidas, screen, naveJugador)
         seguirJugador(naveJugador, ovnis, time)
-        calculaDisparos(naveJugador, ovnis)
+        calculaDisparos(naveJugador, ovnis, monedas, vidas)
 
+        calcularTiempoDeVidaItems(monedas, vidas)
 
         textScore = myfont.render("Score " + str(naveJugador.score), False, (0, 0, 0))
+
         textLifes = myfont.render("Vidas " + str(naveJugador.vida), False, (0, 0, 0))
 
         screen.blit(textScore, (50, 50))
         screen.blit(textLifes, (50, 90))
+
+        dibujarVidaRestante(screen, naveJugador)
 
         if(naveJugador.vida == 0):
             print("has perdido")
@@ -236,8 +325,6 @@ def main():
         pygame.display.flip()
 
     return 0
-
-
 
 
 if __name__ == '__main__':
