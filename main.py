@@ -169,7 +169,6 @@ def calculaDisparos(naveJugador, ovnis, monedas, vidas):
                 ovnis.remove(ovni)
                 naveJugador.score=naveJugador.score+1
                 item = random.randint(0, 4)
-                print(item)
 
                 if item==2:
                     monedas.append(Moneda(posicionOvniMuertoX, posicionOvniMuertoY))
@@ -262,6 +261,9 @@ def calcularColisionItems(monedas, vidas, naveJugador):
         if pygame.sprite.collide_mask(naveJugador, vida):
             if naveJugador.vida < 5:
                 naveJugador.vida += 1
+            else:
+                naveJugador.score +=50
+
             vidas.remove(vida)
 
 
@@ -319,10 +321,10 @@ def main():
         screen.fill(BLACK)
         screen.blit(naveJugador.image, naveJugador.rect)
 
-        tiempoParaNuevoOvni=tiempoParaNuevoOvni-1
-        if tiempoParaNuevoOvni<=0:
+        tiempoParaNuevoOvni = tiempoParaNuevoOvni-1
+        if tiempoParaNuevoOvni <= 0:
             nuevoOvni(ovnis, tiempoParaNuevoOvni)
-            tiempoParaNuevoOvni=50
+            tiempoParaNuevoOvni = 50
 
         dibujarOvnis(ovnis, screen)
         dibujarBalas(naveJugador, screen)
