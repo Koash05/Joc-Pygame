@@ -2,202 +2,27 @@
 # -*- coding: utf-8 -*-
 
 # Módulos
-import sys, pygame, random
+import sys, pygame, random, os
 from pygame.locals import *
 
 # Constantes
 WIDTH = 1280
 HEIGHT = 720
-BLACK = [255, 255, 255]
+WHITE = [255, 255, 255]
 RECARGA = 10
 VIDA = 5
 
 
 # Clases
 # ---------------------------------------------------------------------
-
-class Shot(pygame.sprite.Sprite):
-    def __init__(self, x, y, direccion):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = cargarImagen("imagenes/shot.png")
-        self.rect = self.image.get_rect()
-        self.rect.centery=y
-        self.rect.centerx=x
-        self.mirando = direccion
-        self.speed = 0.9
-        self.life = 100
-
-
-class Corazon(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("imagenes/corazon.png")
-        self.rect = self.image.get_rect()
-        self.rect.centery = y
-        self.rect.centerx = x
-        self.lifeTime = 300
-
-
-class Moneda(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        # self.image = cargarImagen("imagenes/moneda.png")
-        self.image = pygame.image.load("imagenes/moneda.png")
-        self.rect = self.image.get_rect()
-        self.rect.centery = y
-        self.rect.centerx = x
-        self.lifeTime = 300
-
-
-class Nave(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = cargarImagen("imagenes/spaceship1.png")
-        self.rect = self.image.get_rect()
-        self.speed = 0.4
-        self.rect.centery = HEIGHT/2
-        self.rect.centerx = WIDTH/2
-        self.mirando = 1
-        self.shots = []
-        self.recarga = RECARGA
-        self.vida = VIDA
-        self.score = 0
-        self.multishot = False
-        self.effectTimeMultiShot = 300
-
-
-    def mover(self, time, keys):
-
-        if not self.recarga == 0:
-            self.recarga=self.recarga-1
-
-        if self.rect.top >= 0:
-            if keys[K_UP]:
-                self.image = pygame.image.load("imagenes/spaceship1.png")
-                self.rect.centery -= self.speed * time
-                self.mirando = 1
-        if self.rect.bottom <= HEIGHT:
-            if keys[K_DOWN]:
-                self.image = pygame.image.load("imagenes/spaceship3.png")
-                self.rect.centery += self.speed * time
-                self.mirando = 2
-        if self.rect.left >= 0:
-            if keys[K_LEFT]:
-                self.image = pygame.image.load("imagenes/spaceship4.png")
-                self.rect.centerx -=self.speed * time
-                self.mirando = 3
-        if self.rect.right <= WIDTH:
-            if keys[K_RIGHT]:
-                self.image = pygame.image.load("imagenes/spaceship2.png")
-                self.rect.centerx +=self.speed * time
-                self.mirando = 4
-
-
-    def disparar(self, time, keys):
-        if keys[K_SPACE]:
-            if self.recarga == 0:
-                if self.mirando == 1:
-                    self.shots.append(Shot(self.rect.centerx, self.rect.centery-43, self.mirando))
-                    if(self.multishot == True):
-                        self.shots.append(Shot(self.rect.centerx, self.rect.centery - 43, 5))
-                        self.shots.append(Shot(self.rect.centerx, self.rect.centery - 43, 6))
-
-                if self.mirando == 2:
-                    self.shots.append(Shot(self.rect.centerx, self.rect.centery+43, self.mirando))
-                    if self.multishot == True:
-                        self.shots.append(Shot(self.rect.centerx, self.rect.centery + 43, 7))
-                        self.shots.append(Shot(self.rect.centerx, self.rect.centery+43, 8))
-
-                if self.mirando == 3:
-                    self.shots.append(Shot(self.rect.centerx-43, self.rect.centery, self.mirando))
-                    if(self.multishot == True):
-                        self.shots.append(Shot(self.rect.centerx - 43, self.rect.centery, 6))
-                        self.shots.append(Shot(self.rect.centerx-43, self.rect.centery, 7))
-
-                if self.mirando == 4:
-                    self.shots.append(Shot(self.rect.centerx + 43, self.rect.centery, self.mirando))
-                    if(self.multishot == True):
-                        self.shots.append(Shot(self.rect.centerx + 43, self.rect.centery, 8))
-                        self.shots.append(Shot(self.rect.centerx + 43, self.rect.centery, 5))
-
-                self.recarga = RECARGA
-
-
-        for shot in self.shots:
-            speedTime = shot.speed * time
-            if shot.mirando == 1:
-                shot.rect.centery -= speedTime
-
-            if shot.mirando == 2:
-                shot.rect.centery += speedTime
-
-            if shot.mirando == 3:
-                shot.rect.centerx -= speedTime
-
-            if shot.mirando == 4:
-                shot.rect.centerx += speedTime
-
-            if shot.mirando == 5:
-                shot.rect.centerx += speedTime
-                shot.rect.centery -= speedTime
-
-            if shot.mirando == 6:
-                shot.rect.centerx -= speedTime
-                shot.rect.centery -= speedTime
-
-            if shot.mirando == 7:
-                shot.rect.centerx -= speedTime
-                shot.rect.centery += speedTime
-
-            if shot.mirando == 8:
-                shot.rect.centerx += speedTime
-                shot.rect.centery += speedTime
-
-            shot.life = shot.life-1
-
-            if(shot.life<=0):
-                self.shots.remove(shot)
-
-
-class Ovni(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = cargarImagen("imagenes/ovni.png")
-        self.rect = self.image.get_rect()
-        self.speed = 0.2
-        self.rect.centery = y
-        self.rect.centerx = x
-
-
-class MultiShot(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("imagenes/Multishot.png")
-        self.rect = self.image.get_rect()
-        self.rect.centery = y
-        self.rect.centerx = x
-        self.lifeTime = 300
-
-
-class SpeedUp(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("imagenes/speedUp.png")
-        self.rect = self.image.get_rect()
-        self.rect.centery = y
-        self.rect.centerx = x
-        self.lifeTime = 300
-
-
-class SpeedDown(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("imagenes/speedDown.png")
-        self.rect = self.image.get_rect()
-        self.rect.centery = y
-        self.rect.centerx = x
-        self.lifeTime = 300
-
+from Corazon import Corazon
+from Moneda import Moneda
+from MultiShot import MultiShot
+from Nave import Nave
+from Ovni import Ovni
+from SpeedUp import SpeedUp
+from SpeedDown import SpeedDown
+from User import User
 
 # ---------------------------------------------------------------------
 
@@ -226,7 +51,7 @@ def dibujarOvnis(ovnis, screen):
         screen.blit(ovni.image, ovni.rect)
 
 
-def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots):
+def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots, deathOvnis, fase):
     for ovni in ovnis:
         for shot in naveJugador.shots:
             if(pygame.sprite.collide_mask(shot, ovni)):
@@ -234,6 +59,12 @@ def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, mult
                 posicionOvniMuertoX=ovni.rect.centerx
                 posicionOvniMuertoY = ovni.rect.centery
                 try:
+                    deathOvnis=deathOvnis+1
+
+                    if deathOvnis > 20 + (fase*2):
+                        fase = fase + 1
+                        deathOvnis = 0
+
                     ovnis.remove(ovni)
                 except:
                     print("")
@@ -393,12 +224,40 @@ def dibujarVidaRestante(screen, naveJugador):
 
 def guardarPuntuacion(name, puntacion):
     f = open("puntacion.txt", "a")
-
     puntacionString=str(puntacion)
     f.write(str(name + ":" + puntacionString + "\n"))
+    f.close()
+
+    array_usuarios = []
+    file1 = open('puntacion.txt', 'r')
+    Lines = file1.readlines()
+    count = 0
+    for line in Lines:
+        count += 1
+        parsed_user = line.strip().split(":", 1)
+
+        array_usuarios.append(User(parsed_user[0], parsed_user[1]))
+
+    file1.close()
+
+    for i in range(1,len(array_usuarios)):
+        for j in range(0,len(array_usuarios)-i):
+            if(array_usuarios[j+1].puntuacion > array_usuarios[j].puntuacion):
+                aux=array_usuarios[j];
+                array_usuarios[j]=array_usuarios[j+1];
+                array_usuarios[j+1]=aux;
+
+    if os.path.exists("puntacion.txt"):
+        os.remove("puntacion.txt")
+
+
+    f = open("puntacion.txt", "a")
+    for i in array_usuarios:
+        f.write(str(i.nombre + ":" + i.puntuacion + "\n"))
 
     f.close()
 
+    return array_usuarios
 
 def escribirNombre(keys):
     letra = pygame.key.key_code(keys)
@@ -414,7 +273,6 @@ def readFile(myfont, screen):
         screen.blit(textsurface, (100, posicion))
         posicion = posicion+50
 
-
 # ---------------------------------------------------------------------
 
 def main():
@@ -429,15 +287,24 @@ def main():
     speedUp = []
     speedDown = []
     multiShots = []
+    ranking = []
 
     isPlayerSpeedingUp = False
     isOvnisSpeedingDown = False
     speedUpEffectTime = 300
     speedDownEffectTime = 300
+    mostrarPuntuacion = False
+
+    deathOvnis = 0
 
     fase = 1
+    background_image = pygame.image.load("./imagenes/fondo.png").convert()
 
-    myfont = pygame.font.SysFont('Comic Sans MS', 30)
+    #myfont = pygame.font.SysFont('Comic Sans MS', 30)
+    myfont = pygame.font.Font('./fonts/Moby-Regular.ttf', 30)
+    myfont2 = pygame.font.Font('./fonts/Singa Serif Regular.ttf', 30)
+
+
     tiempoParaNuevoOvni = 50
 
     clock = pygame.time.Clock()
@@ -447,26 +314,41 @@ def main():
 
     nombre=""
 
+    pygame.mixer.music.load('./music/Jeremy Blake - Powerup!.mp3')
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.1)
+
     while True:
-
         if fin:
-            textsurface = myfont.render('Introduce tu nombre:', False, (255, 255, 255))
-            screen.blit(textsurface, (WIDTH / 2, HEIGHT / 2))
-
             for eventos in pygame.event.get():
                 if eventos.type == QUIT:
                     sys.exit(0)
                 if eventos.type == pygame.KEYDOWN:
-                    letra= pygame.key.name(eventos.key)
-                    if letra == "return":
-                        guardarPuntuacion(nombre, naveJugador.score)
-                        exit()
-                    elif len(letra) == 1:
-                        nombre = nombre + letra
+                    if mostrarPuntuacion == False:
+                        letra = pygame.key.name(eventos.key)
+                        if letra == "return":
+                            ranking = guardarPuntuacion(nombre, naveJugador.score)
+                            mostrarPuntuacion = True
+                        elif len(letra) == 1 and letra !=":":
+                            nombre = nombre + letra
 
-            if timeToRead <= 300:
-                readFile(myfont, screen)
-                timeToRead=timeToRead+1
+            #screen.fill(WHITE)
+            screen.blit(background_image, [0,0])
+
+            if mostrarPuntuacion:
+                distancia=20
+                top=1
+                for x in ranking:
+                    if not top > 10:
+                        screen.blit(myfont2.render(str(top) + " - " + x.nombre + ": " + x.puntuacion, False, (0, 0, 0)),(350, distancia))
+                        distancia=distancia+35
+                    top=top+1
+            else:
+                textGetName = myfont.render('Introduce tu nombre:', False, (0, 0, 0))
+                screen.blit(textGetName, (500, 250))
+                textGetName = myfont.render(nombre, False, (0, 0, 0))
+                screen.blit(textGetName, (500, 300))
+        pygame.display.flip()
 
         if not fin:
             time = clock.tick(60)
@@ -477,13 +359,14 @@ def main():
 
             naveJugador.mover(time, keys)
             naveJugador.disparar(time, keys)
-            screen.fill(BLACK)
+            #screen.fill(WHITE)
+            screen.blit(background_image, [0,0])
             screen.blit(naveJugador.image, naveJugador.rect)
 
             tiempoParaNuevoOvni = tiempoParaNuevoOvni-1
             if tiempoParaNuevoOvni <= 0:
                 nuevoOvni(ovnis, tiempoParaNuevoOvni)
-                tiempoParaNuevoOvni = 50
+                tiempoParaNuevoOvni = 50 - fase
 
             dibujarOvnis(ovnis, screen)
             dibujarBalas(naveJugador, screen)
@@ -506,9 +389,8 @@ def main():
 
                     speedDown.remove(speeddown)
 
-
             seguirJugador(naveJugador, ovnis, time)
-            calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots)
+            calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots, deathOvnis, fase)
 
             calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots)
 
