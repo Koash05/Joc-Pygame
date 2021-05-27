@@ -9,8 +9,12 @@ from pygame.locals import *
 WIDTH = 1280
 HEIGHT = 720
 WHITE = [255, 255, 255]
+BLACK = [0, 0, 0]
 RECARGA = 10
 VIDA = 5
+REDBUTTON = [213, 56, 56]
+REDBUTTONHOVER = [104, 28, 28]
+GRIS = [236, 236, 236]
 
 
 # Clases
@@ -222,11 +226,12 @@ def dibujarVidaRestante(screen, naveJugador):
         distanciaDeDibujado += 40
 
 
-def guardarPuntuacion(name, puntacion):
-    f = open("puntacion.txt", "a")
-    puntacionString=str(puntacion)
-    f.write(str(name + ":" + puntacionString + "\n"))
-    f.close()
+def guardarPuntuacion(name, puntacion, pedirNombre):
+    if pedirNombre:
+        f = open("puntacion.txt", "a")
+        puntacionString=str(puntacion)
+        f.write(str(name + ":" + puntacionString + "\n"))
+        f.close()
 
     array_usuarios = []
     file1 = open('puntacion.txt', 'r')
@@ -277,7 +282,7 @@ def readFile(myfont, screen):
 
 def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Travelling around the space")
+    pygame.display.set_caption("Space Hunters")
 
     naveJugador = Nave()
 
@@ -298,19 +303,18 @@ def main():
     deathOvnis = 0
 
     fase = 1
-    background_image = pygame.image.load("./imagenes/fondo.png").convert()
+    background_image = pygame.image.load("./imagenes/Cielo_estrellado.png").convert()
 
     #myfont = pygame.font.SysFont('Comic Sans MS', 30)
-    myfont = pygame.font.Font('./fonts/Moby-Regular.ttf', 30)
-    myfont2 = pygame.font.Font('./fonts/Singa Serif Regular.ttf', 30)
-
+    myfont = pygame.font.Font('./fonts/nasalization-rg.otf', 30)
 
     tiempoParaNuevoOvni = 50
 
     clock = pygame.time.Clock()
 
-    fin = False
+    opcion = 0
     timeToRead=0
+    pedirNombre = False
 
     nombre=""
 
@@ -319,18 +323,89 @@ def main():
     pygame.mixer.music.set_volume(0.1)
 
     while True:
-        if fin:
+        if opcion == 0:
+            click = False
+
+            mx, my = pygame.mouse.get_pos()
+            button_1 = pygame.Rect(50, 100, 200, 50)
+            button_2 = pygame.Rect(50, 200, 200, 50)
+            button_3 = pygame.Rect(50, 300, 200, 50)
+
+            screen.blit(background_image, [0,0])
             for eventos in pygame.event.get():
+                if eventos.type == QUIT:
+                    sys.exit(0)
+                if eventos.type == MOUSEBUTTONDOWN:
+                    if eventos.button == 1:
+                        click = True
+
+            if button_1.collidepoint((mx, my)):
+                if click:
+                    opcion = 1
+                pygame.draw.rect(screen, REDBUTTONHOVER, button_1)
+                screen.blit(myfont.render("Jugar", False, WHITE), (70, 100))
+
+            else:
+                pygame.draw.rect(screen, REDBUTTON, button_1)
+                screen.blit(myfont.render("Jugar", False, BLACK), (70, 100))
+
+            if button_2.collidepoint((mx, my)):
+                if click:
+                    opcion = 2
+                pygame.draw.rect(screen, REDBUTTONHOVER, button_2)
+                screen.blit(myfont.render("Ranking", False, WHITE), (60, 200))
+
+            else:
+                pygame.draw.rect(screen, REDBUTTON, button_2)
+                screen.blit(myfont.render("Ranking", False, BLACK), (60, 200))
+
+            if button_3.collidepoint((mx, my)):
+                if click:
+                    opcion = 3
+                pygame.draw.rect(screen, REDBUTTONHOVER, button_3)
+                screen.blit(myfont.render("Salir", False, WHITE), (60, 300))
+
+            else:
+                pygame.draw.rect(screen, REDBUTTON, button_3)
+                screen.blit(myfont.render("Salir", False, BLACK), (60, 300))
+
+
+
+
+            pygame.display.update()
+            clock.tick(60)
+
+        if opcion == 2:
+            for eventos in pygame.event.get():
+
+                if not pedirNombre:
+                    ranking = guardarPuntuacion(nombre, naveJugador.score, pedirNombre)
+                    mostrarPuntuacion = True
+
                 if eventos.type == QUIT:
                     sys.exit(0)
                 if eventos.type == pygame.KEYDOWN:
                     if mostrarPuntuacion == False:
                         letra = pygame.key.name(eventos.key)
                         if letra == "return":
-                            ranking = guardarPuntuacion(nombre, naveJugador.score)
+                            ranking = guardarPuntuacion(nombre, naveJugador.score, pedirNombre)
                             mostrarPuntuacion = True
                         elif len(letra) == 1 and letra !=":":
                             nombre = nombre + letra
+                        elif letra == "backspace":
+                            nombre = nombre[0:len(nombre)-1]
+                    elif mostrarPuntuacion == True:
+                        if pygame.key.name(eventos.key) == "return":
+                            opcion = 0
+                            naveJugador = Nave()
+                            isPlayerSpeedingUp = False
+                            isOvnisSpeedingDown = False
+                            speedUpEffectTime = 300
+                            speedDownEffectTime = 300
+                            mostrarPuntuacion = False
+                            deathOvnis = 0
+                            fase = 1
+                            tiempoParaNuevoOvni = 50
 
             #screen.fill(WHITE)
             screen.blit(background_image, [0,0])
@@ -340,17 +415,19 @@ def main():
                 top=1
                 for x in ranking:
                     if not top > 10:
-                        screen.blit(myfont2.render(str(top) + " - " + x.nombre + ": " + x.puntuacion, False, (0, 0, 0)),(350, distancia))
+                        screen.blit(myfont.render(str(top) + " - " + x.nombre + ": " + x.puntuacion, False, GRIS),(350, distancia))
                         distancia=distancia+35
-                    top=top+1
+                    top = top+1
+                screen.blit(myfont.render("Pulsa intro para volver a empezar", False, GRIS),
+                            (350, distancia+80))
             else:
-                textGetName = myfont.render('Introduce tu nombre:', False, (0, 0, 0))
-                screen.blit(textGetName, (500, 250))
-                textGetName = myfont.render(nombre, False, (0, 0, 0))
-                screen.blit(textGetName, (500, 300))
+                textGetName = myfont.render('Introduce tu nombre:', False, GRIS)
+                screen.blit(textGetName, (300, 250))
+                textGetName = myfont.render(nombre, False, GRIS)
+                screen.blit(textGetName, (300, 300))
         pygame.display.flip()
 
-        if not fin:
+        if opcion == 1:
             time = clock.tick(60)
             keys = pygame.key.get_pressed()
             for eventos in pygame.event.get():
@@ -427,18 +504,19 @@ def main():
             imagenMoneda = pygame.image.load("imagenes/moneda.png")
             screen.blit(imagenMoneda, (20,20))
 
-            textScore = myfont.render("Monedas: " + str(naveJugador.score), False, (0, 0, 0))
+            textScore = myfont.render("Monedas: " + str(naveJugador.score), False, GRIS)
             screen.blit(textScore, (60, 13))
 
-            textFase = myfont.render("Fase: " + str(fase), False, (0, 0, 0))
+            textFase = myfont.render("Fase: " + str(fase), False, GRIS)
             screen.blit(textFase, ((WIDTH/2)-75, 13))
 
             dibujarVidaRestante(screen, naveJugador)
 
             if(naveJugador.vida == 0):
 
-                fin = True
-
+                pedirNombre = True
+                mostrarPuntuacion = False
+                opcion = 2
                 ovnis = []
                 vidas = []
                 monedas = []
@@ -447,6 +525,9 @@ def main():
                 multiShots = []
 
             pygame.display.flip()
+
+        if opcion == 3:
+            sys.exit()
 
     return 0
 
