@@ -17,3 +17,7 @@ class User():
         self.nombre = nombre
         self.puntuacion = puntacion
 
+    def __repr__(self):
+        return repr((self.nombre, self.puntuacion))
+
+

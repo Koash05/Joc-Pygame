@@ -30,6 +30,7 @@ class Nave(pygame.sprite.Sprite):
         self.score = 0
         self.multishot = False
         self.effectTimeMultiShot = 300
+        self.deathOvnis = 0
 
 
     def mover(self, time, keys):
@@ -62,6 +63,11 @@ class Nave(pygame.sprite.Sprite):
     def disparar(self, time, keys):
         if keys[K_SPACE]:
             if self.recarga == 0:
+
+                effect = pygame.mixer.Sound('./music/shoot.wav')
+                effect.set_volume(0.05)
+                effect.play()
+
                 if self.mirando == 1:
                     self.shots.append(Shot(self.rect.centerx, self.rect.centery-43, self.mirando))
                     if(self.multishot == True):

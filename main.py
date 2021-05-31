@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Módulos
-import sys, pygame, random, os
+import sys, pygame, random, os, operator
+
 from pygame.locals import *
 
 # Constantes
@@ -55,30 +56,26 @@ def dibujarOvnis(ovnis, screen):
         screen.blit(ovni.image, ovni.rect)
 
 
-def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots, deathOvnis, fase):
+def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots):
     for ovni in ovnis:
         for shot in naveJugador.shots:
             if(pygame.sprite.collide_mask(shot, ovni)):
                 naveJugador.shots.remove(shot)
                 posicionOvniMuertoX=ovni.rect.centerx
                 posicionOvniMuertoY = ovni.rect.centery
+                naveJugador.deathOvnis = naveJugador.deathOvnis + 1
+
                 try:
-                    deathOvnis=deathOvnis+1
-
-                    if deathOvnis > 20 + (fase*2):
-                        fase = fase + 1
-                        deathOvnis = 0
-
                     ovnis.remove(ovni)
                 except:
                     print("")
-                naveJugador.score=naveJugador.score+1
+                naveJugador.score = naveJugador.score + 20
                 item = random.randint(0, 7)
 
-                if item == 2:
+                if item == 1:
                     monedas.append(Moneda(posicionOvniMuertoX, posicionOvniMuertoY))
 
-                if item == 3:
+                if item == 2:
                     vidas.append(Corazon(posicionOvniMuertoX, posicionOvniMuertoY))
 
                 if item == 3:
@@ -123,24 +120,48 @@ def colisionNaveOvni(naveJugador, ovni, ovnis):
         ovnis.remove(ovni)
 
 
-def nuevoOvni(ovnis, tiempoParaNuevoOvni):
+def nuevoOvni(ovnis, isOvnisSpeedingDown):
     posicion=random.randint(0, 5)
 
     if posicion == 0:
-        ovnis.append(Ovni(0,0))
+        newOvni = Ovni(0,0)
+        if (isOvnisSpeedingDown):
+            newOvni.speed = 0.015
+        ovnis.append(newOvni)
+
     if posicion == 1:
-        ovnis.append(Ovni(0,WIDTH))
+        newOvni = Ovni(0,WIDTH)
+        if (isOvnisSpeedingDown):
+            newOvni.speed = 0.015
+        ovnis.append(newOvni)
+
     if posicion == 2:
-        ovnis.append(Ovni(0,WIDTH/2))
+        newOvni = Ovni(0,WIDTH/2)
+        if (isOvnisSpeedingDown):
+            newOvni.speed = 0.015
+        ovnis.append(newOvni)
+
     if posicion == 3:
-        ovnis.append(Ovni(HEIGHT,0))
+        newOvni = Ovni(HEIGHT,0)
+        if (isOvnisSpeedingDown):
+            newOvni.speed = 0.015
+        ovnis.append(newOvni)
+
     if posicion == 4:
-        ovnis.append(Ovni(HEIGHT/2,0))
+        newOvni = Ovni(HEIGHT/2,0)
+        if (isOvnisSpeedingDown):
+            newOvni.speed = 0.015
+        ovnis.append(newOvni)
+
     if posicion == 5:
-        ovnis.append(Ovni(HEIGHT,WIDTH))
+        newOvni = Ovni(HEIGHT,WIDTH)
+        if (isOvnisSpeedingDown):
+            newOvni.speed = 0.015
+
+        ovnis.append(newOvni)
 
 
-def calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots):
+def calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots, speedDown):
 
     for moneda in monedas:
         moneda.lifeTime=moneda.lifeTime-1
@@ -165,6 +186,13 @@ def calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots):
 
         if multishot.lifeTime <=0:
             multiShots.remove(multishot)
+
+    for speeddown in speedDown:
+        speeddown.lifeTime = speeddown.lifeTime-1
+
+        if speeddown.lifeTime <=0:
+            speedDown.remove(speeddown)
+
 
 
 
@@ -241,16 +269,18 @@ def guardarPuntuacion(name, puntacion, pedirNombre):
         count += 1
         parsed_user = line.strip().split(":", 1)
 
-        array_usuarios.append(User(parsed_user[0], parsed_user[1]))
+        array_usuarios.append(User(parsed_user[0], int(parsed_user[1])))
 
     file1.close()
 
-    for i in range(1,len(array_usuarios)):
-        for j in range(0,len(array_usuarios)-i):
-            if(array_usuarios[j+1].puntuacion > array_usuarios[j].puntuacion):
-                aux=array_usuarios[j];
-                array_usuarios[j]=array_usuarios[j+1];
-                array_usuarios[j+1]=aux;
+    #for i in range(1,len(array_usuarios)):
+    #    for j in range(0,len(array_usuarios)-i):
+    #        if(array_usuarios[j+1].puntuacion > array_usuarios[j].puntuacion):
+    #            aux=array_usuarios[j];
+    #            array_usuarios[j]=array_usuarios[j+1];
+    #            array_usuarios[j+1]=aux;
+
+    array_usuarios = sorted(array_usuarios, key=operator.attrgetter('puntuacion'), reverse=True)
 
     if os.path.exists("puntacion.txt"):
         os.remove("puntacion.txt")
@@ -258,7 +288,7 @@ def guardarPuntuacion(name, puntacion, pedirNombre):
 
     f = open("puntacion.txt", "a")
     for i in array_usuarios:
-        f.write(str(i.nombre + ":" + i.puntuacion + "\n"))
+        f.write(i.nombre + ":" + str(i.puntuacion) + "\n")
 
     f.close()
 
@@ -270,7 +300,6 @@ def escribirNombre(keys):
 
 def readFile(myfont, screen):
     f = open("puntacion.txt", "r")
-    #print(f.readline())
     posicion = 100
 
     for x in f:
@@ -299,8 +328,6 @@ def main():
     speedUpEffectTime = 300
     speedDownEffectTime = 300
     mostrarPuntuacion = False
-
-    deathOvnis = 0
 
     fase = 1
     background_image = pygame.image.load("./imagenes/Cielo_estrellado.png").convert()
@@ -369,9 +396,6 @@ def main():
                 pygame.draw.rect(screen, REDBUTTON, button_3)
                 screen.blit(myfont.render("Salir", False, BLACK), (60, 300))
 
-
-
-
             pygame.display.update()
             clock.tick(60)
 
@@ -403,7 +427,7 @@ def main():
                             speedUpEffectTime = 300
                             speedDownEffectTime = 300
                             mostrarPuntuacion = False
-                            deathOvnis = 0
+                            naveJugador.deathOvnis = 0
                             fase = 1
                             tiempoParaNuevoOvni = 50
 
@@ -415,7 +439,7 @@ def main():
                 top=1
                 for x in ranking:
                     if not top > 10:
-                        screen.blit(myfont.render(str(top) + " - " + x.nombre + ": " + x.puntuacion, False, GRIS),(350, distancia))
+                        screen.blit(myfont.render(str(top) + " - " + x.nombre + ": " + str(x.puntuacion), False, GRIS),(350, distancia))
                         distancia=distancia+35
                     top = top+1
                 screen.blit(myfont.render("Pulsa intro para volver a empezar", False, GRIS),
@@ -442,7 +466,7 @@ def main():
 
             tiempoParaNuevoOvni = tiempoParaNuevoOvni-1
             if tiempoParaNuevoOvni <= 0:
-                nuevoOvni(ovnis, tiempoParaNuevoOvni)
+                nuevoOvni(ovnis, isOvnisSpeedingDown)
                 tiempoParaNuevoOvni = 50 - fase
 
             dibujarOvnis(ovnis, screen)
@@ -467,9 +491,9 @@ def main():
                     speedDown.remove(speeddown)
 
             seguirJugador(naveJugador, ovnis, time)
-            calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots, deathOvnis, fase)
+            calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots)
 
-            calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots)
+            calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots, speedDown)
 
             # SpeedUp
             if (isPlayerSpeedingUp == True):
@@ -499,7 +523,9 @@ def main():
                     naveJugador.multishot = False
                     naveJugador.effectTimeMultiShot = 300
 
-
+                if naveJugador.deathOvnis > 20 + fase:
+                    fase = fase + 1
+                    naveJugador.deathOvnis = 0
 
             imagenMoneda = pygame.image.load("imagenes/moneda.png")
             screen.blit(imagenMoneda, (20,20))
