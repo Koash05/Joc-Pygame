@@ -1,6 +1,10 @@
 manolo:50000
-pauu:790
+pau:1210
+pau:790
 manolo:500
 pau:100
 pepe:10
+pau:0
+pau:0
+pau:0
 pau:0

@@ -70,7 +70,7 @@ def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, mult
                 except:
                     print("")
                 naveJugador.score = naveJugador.score + 20
-                item = random.randint(0, 7)
+                item = random.randint(1, 10)
 
                 if item == 1:
                     monedas.append(Moneda(posicionOvniMuertoX, posicionOvniMuertoY))
@@ -90,17 +90,34 @@ def calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, mult
 
 def seguirJugador(naveJugador, ovnis, time):
     for ovni in ovnis:
-        distanciaX= naveJugador.rect.centerx-ovni.rect.centerx
-        distanciaY= naveJugador.rect.centery-ovni.rect.centery
 
-        if distanciaX < 0:
-            ovni.rect.centerx -= ovni.speed * time
-        if distanciaX > 0:
-            ovni.rect.centerx += ovni.speed * time
-        if distanciaY < 0:
-            ovni.rect.centery -= ovni.speed * time
-        if distanciaY > 0:
-            ovni.rect.centery += ovni.speed * time
+        if ovni.seguir == 0:
+            distanciaX= naveJugador.rect.centerx-ovni.rect.centerx
+            distanciaY= naveJugador.rect.centery-ovni.rect.centery
+
+            if distanciaX < 0:
+                ovni.rect.centerx -= ovni.speed * time
+            if distanciaX > 0:
+                ovni.rect.centerx += ovni.speed * time
+            if distanciaY < 0:
+                ovni.rect.centery -= ovni.speed * time
+            if distanciaY > 0:
+                ovni.rect.centery += ovni.speed * time
+
+        else:
+            distanciaX = naveJugador.rect.centerx - ovni.rect.centerx
+            distanciaY = naveJugador.rect.centery - ovni.rect.centery
+
+            if distanciaY < 0:
+                ovni.rect.centery -= ovni.speed * time
+            elif distanciaY > 0:
+                ovni.rect.centery += ovni.speed * time
+
+            if distanciaY ==0:
+                if distanciaX < 0:
+                    ovni.rect.centerx -= ovni.speed * time
+                elif distanciaX > 0:
+                    ovni.rect.centerx += ovni.speed * time
 
         colisionNaveOvni(naveJugador, ovni, ovnis)
 
@@ -122,39 +139,39 @@ def colisionNaveOvni(naveJugador, ovni, ovnis):
 
 def nuevoOvni(ovnis, isOvnisSpeedingDown):
     posicion=random.randint(0, 5)
-
+    seguir=random.randint(0, 2)
     if posicion == 0:
-        newOvni = Ovni(0,0)
+        newOvni = Ovni(0+20,0+20, seguir)
         if (isOvnisSpeedingDown):
             newOvni.speed = 0.015
         ovnis.append(newOvni)
 
     if posicion == 1:
-        newOvni = Ovni(0,WIDTH)
+        newOvni = Ovni(0+20,WIDTH-10, seguir)
         if (isOvnisSpeedingDown):
             newOvni.speed = 0.015
         ovnis.append(newOvni)
 
     if posicion == 2:
-        newOvni = Ovni(0,WIDTH/2)
+        newOvni = Ovni(0+20,WIDTH/2, seguir)
         if (isOvnisSpeedingDown):
             newOvni.speed = 0.015
         ovnis.append(newOvni)
 
     if posicion == 3:
-        newOvni = Ovni(HEIGHT,0)
+        newOvni = Ovni(HEIGHT-20,0+20, seguir)
         if (isOvnisSpeedingDown):
             newOvni.speed = 0.015
         ovnis.append(newOvni)
 
     if posicion == 4:
-        newOvni = Ovni(HEIGHT/2,0)
+        newOvni = Ovni(HEIGHT/2,0, seguir)
         if (isOvnisSpeedingDown):
             newOvni.speed = 0.015
         ovnis.append(newOvni)
 
     if posicion == 5:
-        newOvni = Ovni(HEIGHT,WIDTH)
+        newOvni = Ovni(HEIGHT,WIDTH, seguir)
         if (isOvnisSpeedingDown):
             newOvni.speed = 0.015
 
@@ -273,14 +290,13 @@ def guardarPuntuacion(name, puntacion, pedirNombre):
 
     file1.close()
 
-    #for i in range(1,len(array_usuarios)):
-    #    for j in range(0,len(array_usuarios)-i):
-    #        if(array_usuarios[j+1].puntuacion > array_usuarios[j].puntuacion):
-    #            aux=array_usuarios[j];
-    #            array_usuarios[j]=array_usuarios[j+1];
-    #            array_usuarios[j+1]=aux;
+    for i in range(1,len(array_usuarios)):
+        for j in range(0,len(array_usuarios)-i):
+            if(array_usuarios[j+1].puntuacion > array_usuarios[j].puntuacion):
+                aux=array_usuarios[j];
+                array_usuarios[j]=array_usuarios[j+1];
+                array_usuarios[j+1]=aux;
 
-    array_usuarios = sorted(array_usuarios, key=operator.attrgetter('puntuacion'), reverse=True)
 
     if os.path.exists("puntacion.txt"):
         os.remove("puntacion.txt")
@@ -332,7 +348,6 @@ def main():
     fase = 1
     background_image = pygame.image.load("./imagenes/Cielo_estrellado.png").convert()
 
-    #myfont = pygame.font.SysFont('Comic Sans MS', 30)
     myfont = pygame.font.Font('./fonts/nasalization-rg.otf', 30)
 
     tiempoParaNuevoOvni = 50
@@ -352,6 +367,7 @@ def main():
     while True:
         if opcion == 0:
             click = False
+            pedirNombre = False
 
             mx, my = pygame.mouse.get_pos()
             button_1 = pygame.Rect(50, 100, 200, 50)
@@ -435,15 +451,20 @@ def main():
             screen.blit(background_image, [0,0])
 
             if mostrarPuntuacion:
-                distancia=20
+                distancia=200
                 top=1
+                screen.blit(myfont.render("Space Hunters", False, GRIS),
+                            (300, 20))
+                screen.blit(myfont.render("Ranking", False, GRIS),
+                            (300, 120))
+
                 for x in ranking:
                     if not top > 10:
                         screen.blit(myfont.render(str(top) + " - " + x.nombre + ": " + str(x.puntuacion), False, GRIS),(350, distancia))
                         distancia=distancia+35
                     top = top+1
                 screen.blit(myfont.render("Pulsa intro para volver a empezar", False, GRIS),
-                            (350, distancia+80))
+                            (300, distancia+80))
             else:
                 textGetName = myfont.render('Introduce tu nombre:', False, GRIS)
                 screen.blit(textGetName, (300, 250))

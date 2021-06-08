@@ -13,13 +13,14 @@ RECARGA = 10
 VIDA = 5
 
 class Ovni(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, seguir):
         pygame.sprite.Sprite.__init__(self)
-        self.image = cargarImagen("imagenes/ovni.png")
+        self.image = cargarImagen("imagenes/ovni2.png")
         self.rect = self.image.get_rect()
         self.speed = 0.2
         self.rect.centery = y
         self.rect.centerx = x
+        self.seguir = seguir
 
 
 def cargarImagen(filename, transparent=True):
