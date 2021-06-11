@@ -15,6 +15,7 @@ RECARGA = 10
 VIDA = 5
 REDBUTTON = [213, 56, 56]
 REDBUTTONHOVER = [104, 28, 28]
+GREENTITLE = [70,231,30]
 GRIS = [236, 236, 236]
 
 
@@ -242,13 +243,14 @@ def calcularColisionItems(monedas, vidas, multiShots, naveJugador):
             if naveJugador.vida < 5:
                 naveJugador.vida += 1
             else:
-                naveJugador.score +=50
+                naveJugador.score += 50
 
             vidas.remove(vida)
 
     for multishot in multiShots:
         if pygame.sprite.collide_mask(naveJugador, multishot):
             naveJugador.multishot = True
+            naveJugador.score += 20
 
             multiShots.remove(multishot)
 
@@ -344,11 +346,14 @@ def main():
     speedUpEffectTime = 300
     speedDownEffectTime = 300
     mostrarPuntuacion = False
+    jugar = True
 
     fase = 1
     background_image = pygame.image.load("./imagenes/Cielo_estrellado.png").convert()
 
     myfont = pygame.font.Font('./fonts/nasalization-rg.otf', 30)
+    myfont2 = pygame.font.Font('./fonts/PermanentMarker-Regular.ttf', 50)
+
 
     tiempoParaNuevoOvni = 50
 
@@ -368,11 +373,12 @@ def main():
         if opcion == 0:
             click = False
             pedirNombre = False
+            mostrarPuntuacion = True
 
             mx, my = pygame.mouse.get_pos()
-            button_1 = pygame.Rect(50, 100, 200, 50)
-            button_2 = pygame.Rect(50, 200, 200, 50)
-            button_3 = pygame.Rect(50, 300, 200, 50)
+            button_1 = pygame.Rect(50, 150, 200, 50)
+            button_2 = pygame.Rect(50, 250, 200, 50)
+            button_3 = pygame.Rect(50, 350, 200, 50)
 
             screen.blit(background_image, [0,0])
             for eventos in pygame.event.get():
@@ -382,35 +388,37 @@ def main():
                     if eventos.button == 1:
                         click = True
 
+            screen.blit(myfont2.render("Space Hunters", False, GREENTITLE), (70, 10))
+
             if button_1.collidepoint((mx, my)):
                 if click:
                     opcion = 1
                 pygame.draw.rect(screen, REDBUTTONHOVER, button_1)
-                screen.blit(myfont.render("Jugar", False, WHITE), (70, 100))
+                screen.blit(myfont.render("Jugar", False, WHITE), (70, 150))
 
             else:
                 pygame.draw.rect(screen, REDBUTTON, button_1)
-                screen.blit(myfont.render("Jugar", False, BLACK), (70, 100))
+                screen.blit(myfont.render("Jugar", False, BLACK), (70, 150))
 
             if button_2.collidepoint((mx, my)):
                 if click:
                     opcion = 2
                 pygame.draw.rect(screen, REDBUTTONHOVER, button_2)
-                screen.blit(myfont.render("Ranking", False, WHITE), (60, 200))
+                screen.blit(myfont.render("Ranking", False, WHITE), (60, 250))
 
             else:
                 pygame.draw.rect(screen, REDBUTTON, button_2)
-                screen.blit(myfont.render("Ranking", False, BLACK), (60, 200))
+                screen.blit(myfont.render("Ranking", False, BLACK), (60, 250))
 
             if button_3.collidepoint((mx, my)):
                 if click:
                     opcion = 3
                 pygame.draw.rect(screen, REDBUTTONHOVER, button_3)
-                screen.blit(myfont.render("Salir", False, WHITE), (60, 300))
+                screen.blit(myfont.render("Salir", False, WHITE), (60, 350))
 
             else:
                 pygame.draw.rect(screen, REDBUTTON, button_3)
-                screen.blit(myfont.render("Salir", False, BLACK), (60, 300))
+                screen.blit(myfont.render("Salir", False, BLACK), (60, 350))
 
             pygame.display.update()
             clock.tick(60)
@@ -453,14 +461,15 @@ def main():
             if mostrarPuntuacion:
                 distancia=200
                 top=1
-                screen.blit(myfont.render("Space Hunters", False, GRIS),
-                            (300, 20))
+                screen.blit(myfont2.render("Space Hunters", False, GREENTITLE),(300, 20))
                 screen.blit(myfont.render("Ranking", False, GRIS),
                             (300, 120))
 
                 for x in ranking:
                     if not top > 10:
-                        screen.blit(myfont.render(str(top) + " - " + x.nombre + ": " + str(x.puntuacion), False, GRIS),(350, distancia))
+                        screen.blit(myfont.render(str(top) + " - " + x.nombre, False, GRIS),(350, distancia))
+                        screen.blit(myfont.render(str(x.puntuacion), False, GRIS),(800, distancia))
+
                         distancia=distancia+35
                     top = top+1
                 screen.blit(myfont.render("Pulsa intro para volver a empezar", False, GRIS),
@@ -473,105 +482,124 @@ def main():
         pygame.display.flip()
 
         if opcion == 1:
-            time = clock.tick(60)
-            keys = pygame.key.get_pressed()
-            for eventos in pygame.event.get():
-                if eventos.type == QUIT:
-                    sys.exit(0)
+            if jugar:
+                time = clock.tick(60)
+                keys = pygame.key.get_pressed()
+                for eventos in pygame.event.get():
+                    if eventos.type == QUIT:
+                        sys.exit(0)
+                    if eventos.type == pygame.KEYDOWN:
+                            letra = pygame.key.name(eventos.key)
+                            if letra == "p":
+                                jugar = False
 
-            naveJugador.mover(time, keys)
-            naveJugador.disparar(time, keys)
-            #screen.fill(WHITE)
-            screen.blit(background_image, [0,0])
-            screen.blit(naveJugador.image, naveJugador.rect)
+                naveJugador.mover(time, keys)
+                naveJugador.disparar(time, keys)
+                #screen.fill(WHITE)
+                screen.blit(background_image, [0,0])
+                screen.blit(naveJugador.image, naveJugador.rect)
 
-            tiempoParaNuevoOvni = tiempoParaNuevoOvni-1
-            if tiempoParaNuevoOvni <= 0:
-                nuevoOvni(ovnis, isOvnisSpeedingDown)
-                tiempoParaNuevoOvni = 50 - fase
+                tiempoParaNuevoOvni = tiempoParaNuevoOvni-1
+                if tiempoParaNuevoOvni <= 0:
+                    nuevoOvni(ovnis, isOvnisSpeedingDown)
+                    tiempoParaNuevoOvni = 50 - fase
 
-            dibujarOvnis(ovnis, screen)
-            dibujarBalas(naveJugador, screen)
-            dibujarItems(monedas, vidas, speedUp, speedDown, multiShots, screen)
-            calcularColisionItems(monedas, vidas, multiShots, naveJugador)
+                dibujarOvnis(ovnis, screen)
+                dibujarBalas(naveJugador, screen)
+                dibujarItems(monedas, vidas, speedUp, speedDown, multiShots, screen)
+                calcularColisionItems(monedas, vidas, multiShots, naveJugador)
 
-            # SpeedUp
-            for speedup in speedUp:
-                if pygame.sprite.collide_mask(naveJugador, speedup):
-                    naveJugador.speed = 0.6
-                    isPlayerSpeedingUp = True
+                # SpeedUp
+                for speedup in speedUp:
+                    if pygame.sprite.collide_mask(naveJugador, speedup):
+                        naveJugador.speed = 0.6
+                        isPlayerSpeedingUp = True
+                        naveJugador.score += 20
 
-                    speedUp.remove(speedup)
+                        speedUp.remove(speedup)
 
-            # SpeedDown
-            for speeddown in speedDown:
-                if pygame.sprite.collide_mask(naveJugador, speeddown):
-                    for ovni in ovnis:
-                        ovni.speed = 0.15
+                # SpeedDown
+                for speeddown in speedDown:
+                    if pygame.sprite.collide_mask(naveJugador, speeddown):
+                        for ovni in ovnis:
+                            ovni.speed = 0.15
+                            naveJugador.score += 20
 
-                    speedDown.remove(speeddown)
+                        speedDown.remove(speeddown)
 
-            seguirJugador(naveJugador, ovnis, time)
-            calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots)
+                seguirJugador(naveJugador, ovnis, time)
+                calculaDisparos(naveJugador, ovnis, monedas, vidas, speedUp, speedDown, multiShots)
 
-            calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots, speedDown)
+                calcularTiempoDeVidaItems(monedas, vidas, speedUp, multiShots, speedDown)
 
-            # SpeedUp
-            if (isPlayerSpeedingUp == True):
-                speedUpEffectTime = speedUpEffectTime - 1
+                # SpeedUp
+                if (isPlayerSpeedingUp == True):
+                    speedUpEffectTime = speedUpEffectTime - 1
 
-                if (speedUpEffectTime <= 0):
-                    isPlayerSpeedingUp = False
-                    naveJugador.speed = 0.4
-                    speedUpEffectTime = 300
+                    if (speedUpEffectTime <= 0):
+                        isPlayerSpeedingUp = False
+                        naveJugador.speed = 0.4
+                        speedUpEffectTime = 300
 
-            # SpeedDown
-            if (isOvnisSpeedingDown == True):
-                speedDownEffectTime = speedDownEffectTime - 1
+                # SpeedDown
+                if (isOvnisSpeedingDown == True):
+                    speedDownEffectTime = speedDownEffectTime - 1
 
-                if (speedDownEffectTime <= 0):
-                    isOvnisSpeedingDown = False
-                    for ovni in ovnis:
-                        ovni.speed = 0.2
+                    if (speedDownEffectTime <= 0):
+                        isOvnisSpeedingDown = False
+                        for ovni in ovnis:
+                            ovni.speed = 0.2
 
-                    speedDownEffectTime = 300
+                        speedDownEffectTime = 300
 
-            # SpeedDown
-            if (naveJugador.multishot == True):
-                naveJugador.effectTimeMultiShot = naveJugador.effectTimeMultiShot - 1
+                # SpeedDown
+                if (naveJugador.multishot == True):
+                    naveJugador.effectTimeMultiShot = naveJugador.effectTimeMultiShot - 1
 
-                if (naveJugador.effectTimeMultiShot <= 0):
-                    naveJugador.multishot = False
-                    naveJugador.effectTimeMultiShot = 300
+                    if (naveJugador.effectTimeMultiShot <= 0):
+                        naveJugador.multishot = False
+                        naveJugador.effectTimeMultiShot = 300
 
-                if naveJugador.deathOvnis > 20 + fase:
-                    fase = fase + 1
-                    naveJugador.deathOvnis = 0
+                    if naveJugador.deathOvnis > 20 + fase:
+                        fase = fase + 1
+                        naveJugador.deathOvnis = 0
 
-            imagenMoneda = pygame.image.load("imagenes/moneda.png")
-            screen.blit(imagenMoneda, (20,20))
+                        naveJugador.score += 200
 
-            textScore = myfont.render("Monedas: " + str(naveJugador.score), False, GRIS)
-            screen.blit(textScore, (60, 13))
+                imagenMoneda = pygame.image.load("imagenes/moneda.png")
+                screen.blit(imagenMoneda, (20,20))
 
-            textFase = myfont.render("Fase: " + str(fase), False, GRIS)
-            screen.blit(textFase, ((WIDTH/2)-75, 13))
+                textScore = myfont.render("Monedas: " + str(naveJugador.score), False, GRIS)
+                screen.blit(textScore, (60, 13))
 
-            dibujarVidaRestante(screen, naveJugador)
+                textFase = myfont.render("Fase: " + str(fase), False, GRIS)
+                screen.blit(textFase, ((WIDTH/2)-75, 13))
 
-            if(naveJugador.vida == 0):
+                dibujarVidaRestante(screen, naveJugador)
 
-                pedirNombre = True
-                mostrarPuntuacion = False
-                opcion = 2
-                ovnis = []
-                vidas = []
-                monedas = []
-                speedUp = []
-                speedDown = []
-                multiShots = []
+                if(naveJugador.vida == 0):
 
-            pygame.display.flip()
+                    pedirNombre = True
+                    mostrarPuntuacion = False
+                    opcion = 2
+                    ovnis = []
+                    vidas = []
+                    monedas = []
+                    speedUp = []
+                    speedDown = []
+                    multiShots = []
+                    pygame.display.flip()
+            else:
+                time = clock.tick(60)
+                keys = pygame.key.get_pressed()
+                for eventos in pygame.event.get():
+                    if eventos.type == QUIT:
+                        sys.exit(0)
+                    if eventos.type == pygame.KEYDOWN:
+                            letra = pygame.key.name(eventos.key)
+                            if letra == "p":
+                                jugar = True
+
 
         if opcion == 3:
             sys.exit()
